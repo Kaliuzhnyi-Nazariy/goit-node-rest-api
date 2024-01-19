@@ -1,11 +1,10 @@
-// b2muGPpfa5Vg6EMF
-
 const app = require("./app");
 
 const mongoose = require("mongoose");
 
-const DB_HOST =
-  "mongodb+srv://Nazarii:b2muGPpfa5Vg6EMF@cluster0.5elfmem.mongodb.net/contacts_reader ";
+const { DB_HOST } = process.env;
+
+mongoose.set("strictQuery", true);
 
 mongoose
   .connect(DB_HOST)
