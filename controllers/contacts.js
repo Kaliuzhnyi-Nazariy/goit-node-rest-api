@@ -3,7 +3,10 @@ const { HttpError, ctrlWrapper } = require("../helpers");
 
 const listContacts = async (req, res, next) => {
   const { _id: owner } = req.user;
-  const result = await Contact.find({ owner }, "-createdAt -updatedAt");
+  const result = await Contact.find(
+    { owner },
+    "-createdAt -updatedAt"
+  ).populate("owner", "name email phone");
   res.json(result);
 };
 
@@ -17,8 +20,9 @@ const getContactById = async (req, res, next) => {
 };
 
 const addContact = async (req, res, next) => {
-  const { _id: owner } = req.params;
+  const { _id: owner } = req.user;
   const result = await Contact.create({ ...req.body, owner });
+  console.log(result);
   res.status(201).json(result);
 };
 
