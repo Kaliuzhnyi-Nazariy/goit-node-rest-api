@@ -5,6 +5,8 @@ const { handleMongoose } = require("../helpers");
 const { joiPasswordExtendCore } = require("joi-password");
 const joiPassword = Joi.extend(joiPasswordExtendCore);
 
+const subscriptionEnum = ["starter", "pro", "business"];
+
 const userSchema = new Schema(
   {
     password: {
@@ -18,7 +20,7 @@ const userSchema = new Schema(
     },
     subscription: {
       type: String,
-      enum: ["starter", "pro", "business"],
+      enum: subscriptionEnum,
       default: "starter",
     },
     token: String,
@@ -52,9 +54,16 @@ const loginSchema = Joi.object({
   email: Joi.string().email().required(),
 });
 
+const updateSubscriptionSchema = Joi.object({
+  subscription: Joi.string()
+    .valid(...subscriptionEnum)
+    .required(),
+});
+
 const schemas = {
   registerSchema,
   loginSchema,
+  updateSubscriptionSchema,
 };
 
 userSchema.post("save", handleMongoose);
