@@ -50,9 +50,9 @@ const login = async (req, res, next) => {
 };
 
 const getCurrent = async (req, res, next) => {
-  const { email, password } = req.user;
+  const { email, subscription } = req.user;
 
-  res.json({ email, password });
+  res.json({ email, subscription });
 };
 
 const logout = async (req, res) => {
