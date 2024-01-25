@@ -46,7 +46,7 @@ const removeContact = async (req, res, next) => {
     }
     res.json(delResult);
   } else {
-    next(HttpError(404, "Not found! Not your contact!"));
+    throw HttpError(404, "Not found! Not your contact!");
   }
 };
 
