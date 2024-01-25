@@ -24,18 +24,30 @@ const getContactById = async (req, res, next) => {
 const addContact = async (req, res, next) => {
   const { _id: owner } = req.user;
   const result = await Contact.create({ ...req.body, owner });
-  console.log(result);
   res.status(201).json(result);
 };
 
 const removeContact = async (req, res, next) => {
-  const { _id: owner } = req.user;
+  const { _id: contactOwner } = req.user;
   const { contactId } = req.params;
-  const result = await Contact.findByIdAndDelete(contactId, { owner });
+
+  const result = await Contact.findById(contactId);
   if (!result) {
-    throw HttpError(404, "Not found!");
+    throw HttpError(404);
   }
-  res.json(result);
+  const { owner } = result;
+  console.log(result);
+  console.log(owner);
+
+  if (owner === contactOwner) {
+    const delResult = await Contact.findByIdAndDelete(contactId);
+    if (!delResult) {
+      throw HttpError(404, "Not found!");
+    }
+    res.json(delResult);
+  } else {
+    next(HttpError(404, "Not found! Not your contact!"));
+  }
 };
 
 const updateContact = async (req, res, next) => {
