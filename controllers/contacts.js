@@ -31,14 +31,9 @@ const removeContact = async (req, res, next) => {
   const { _id: owner } = req.user;
   const { contactId } = req.params;
   console.log(contactId);
-  const result = await Contact.findOneAndDelete(
-    { owner },
-    {
-      _id: contactId,
-    }
-  );
+  const result = await Contact.findOneAndDelete({ owner, _id: contactId });
   if (!result) {
-    throw HttpError(404, "not your business");
+    throw HttpError(404);
   }
   res.json(result);
 };
