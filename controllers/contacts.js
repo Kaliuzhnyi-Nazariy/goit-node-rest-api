@@ -28,26 +28,19 @@ const addContact = async (req, res, next) => {
 };
 
 const removeContact = async (req, res, next) => {
-  const { _id: contactOwner } = req.user;
+  const { _id: owner } = req.user;
   const { contactId } = req.params;
-
-  const result = await Contact.findById(contactId);
-  if (!result) {
-    throw HttpError(404);
-  }
-  const { owner } = result;
-  console.log(result);
-  console.log(owner);
-
-  if (owner === contactOwner) {
-    const delResult = await Contact.findByIdAndDelete(contactId);
-    if (!delResult) {
-      throw HttpError(404, "Not found!");
+  console.log(contactId);
+  const result = await Contact.findOneAndDelete(
+    { owner },
+    {
+      _id: contactId,
     }
-    res.json(delResult);
-  } else {
-    throw HttpError(404, "Not found! Not your contact!");
+  );
+  if (!result) {
+    throw HttpError(404, "not your business");
   }
+  res.json(result);
 };
 
 const updateContact = async (req, res, next) => {
