@@ -1,11 +1,17 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const gravatar = require("gravatar");
+const fs = require("fs/promises");
+const path = require("path");
+const Jimp = require("jimp");
 
 const { SECRET_KEY } = process.env;
 
 const { User } = require("../models/user");
 
 const { HttpError, ctrlWrapper } = require("../helpers");
+
+const avatarsDir = path.join(__dirname, "../", "public", "avatars");
 
 const register = async (req, res, next) => {
   const { email, password } = req.body;
@@ -16,7 +22,18 @@ const register = async (req, res, next) => {
   }
 
   const hashPassword = await bcrypt.hash(password, 10);
-  const newUser = await User.create({ ...req.body, password: hashPassword });
+  const createAvatarURL = gravatar.url(email);
+
+  const avatarURL = await Jimp.read(createAvatarURL, (err, lenna) => {
+    if (err) throw err;
+    lenna.resize(256, 256); // resize
+  });
+
+  const newUser = await User.create({
+    ...req.body,
+    password: hashPassword,
+    avatarURL,
+  });
   res.status(201).json({
     email: newUser.email,
     subscription: newUser.subscription,
@@ -72,10 +89,50 @@ const getSubscription = async (req, res, next) => {
   res.json(result);
 };
 
+const updateAvatar = async (req, res) => {
+  const { _id } = req.user;
+  const { path: tempUpload } = req.file;
+  console.log(tempUpload);
+  //
+  // Jimp.read("./path/to/image.jpg")
+  //   .then((image) => {
+  //     // Do stuff with the image.
+  //   })
+  //   .catch((err) => {
+  //     // Handle an exception.
+  //   });
+  //
+
+  const createAvatarURL = Jimp.read(tempUpload)
+    .then((lenna) => {
+      return lenna.resize(256, 256); // resize
+    })
+    .catch((err) => {
+      console.error(err);
+    });
+  //
+
+  console.log(createAvatarURL);
+  const filename = `${_id}_${createAvatarURL}`;
+
+  console.log(filename);
+
+  const resultUpload = path.join(avatarsDir, filename);
+  await fs.rename(tempUpload, resultUpload);
+  const avatarURL = path.join("avatars", filename);
+
+  await User.findByIdAndUpdate(_id, { avatarURL });
+
+  res.json({
+    avatarURL,
+  });
+};
+
 module.exports = {
   register: ctrlWrapper(register),
   login: ctrlWrapper(login),
   getCurrent: ctrlWrapper(getCurrent),
   logout: ctrlWrapper(logout),
   getSubscription: ctrlWrapper(getSubscription),
+  updateAvatar: ctrlWrapper(updateAvatar),
 };
