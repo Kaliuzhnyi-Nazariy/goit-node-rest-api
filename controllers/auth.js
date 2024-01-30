@@ -22,12 +22,7 @@ const register = async (req, res, next) => {
   }
 
   const hashPassword = await bcrypt.hash(password, 10);
-  const createAvatarURL = gravatar.url(email);
-
-  const avatarURL = await Jimp.read(createAvatarURL, (err, lenna) => {
-    if (err) throw err;
-    lenna.resize(256, 256); // resize
-  });
+  const avatarURL = gravatar.url(email, { size: 250 });
 
   const newUser = await User.create({
     ...req.body,
@@ -85,37 +80,19 @@ const getSubscription = async (req, res, next) => {
   const { _id } = req.user;
 
   const result = await User.findByIdAndUpdate(_id, req.body, { new: true });
-  console.log(result);
+
   res.json(result);
 };
 
 const updateAvatar = async (req, res) => {
   const { _id } = req.user;
-  const { path: tempUpload } = req.file;
-  console.log(tempUpload);
-  //
-  // Jimp.read("./path/to/image.jpg")
-  //   .then((image) => {
-  //     // Do stuff with the image.
-  //   })
-  //   .catch((err) => {
-  //     // Handle an exception.
-  //   });
-  //
+  const { path: tempUpload, originalname } = req.file;
 
-  const createAvatarURL = Jimp.read(tempUpload)
-    .then((lenna) => {
-      return lenna.resize(256, 256); // resize
-    })
-    .catch((err) => {
-      console.error(err);
-    });
-  //
+  const createAvatar = await Jimp.read(tempUpload);
+  createAvatar.resize(250, 250);
+  createAvatar.writeAsync(tempUpload);
 
-  console.log(createAvatarURL);
-  const filename = `${_id}_${createAvatarURL}`;
-
-  console.log(filename);
+  const filename = `${_id}_${originalname}`;
 
   const resultUpload = path.join(avatarsDir, filename);
   await fs.rename(tempUpload, resultUpload);
