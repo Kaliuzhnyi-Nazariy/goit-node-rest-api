@@ -88,6 +88,10 @@ const updateAvatar = async (req, res) => {
   const { _id } = req.user;
   const { path: tempUpload, originalname } = req.file;
 
+  if (!req.file) {
+    throw HttpError(400, "Please add a photo!");
+  }
+
   const createAvatar = await Jimp.read(tempUpload);
   createAvatar.resize(250, 250);
   createAvatar.writeAsync(tempUpload);
