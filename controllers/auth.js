@@ -36,7 +36,7 @@ const register = async (req, res, next) => {
   const verifyEmail = {
     to: email,
     subject: "verify email",
-    html: `<a target="_blank" href="${BASE_URL}/api/users/${verificationToken}">Click here to verify your email!</a>`,
+    html: `<a target="_blank" href="${BASE_URL}/api/users/verify/${verificationToken}">Click here to verify your email!</a>`,
   };
 
   await sendEmail(verifyEmail);
@@ -70,7 +70,7 @@ const resendEmailVerification = async (req, res) => {
   if (!email) {
     throw HttpError(400, "missing required field email");
   }
-  const user = await User.findOne(email);
+  const user = await User.findOne({ email });
   if (!user) {
     throw HttpError(404);
   }
@@ -81,7 +81,7 @@ const resendEmailVerification = async (req, res) => {
   const verifyEmail = {
     to: email,
     subject: "Verify Email",
-    html: `<a target="_blank" href="${BASE_URL}/api/users/${user.verificationToken}">Click here to verify your email!</a>`,
+    html: `<a target="_blank" href="${BASE_URL}/api/users/verify/${user.verificationToken}">Click here to verify your email!</a>`,
   };
 
   await sendEmail(verifyEmail);
@@ -97,7 +97,7 @@ const login = async (req, res, next) => {
   if (!user) {
     throw HttpError(401, "Email or password invalid!");
   }
-  if (user.verify) {
+  if (!user.verify) {
     throw HttpError(401, "Please verify your email!");
   }
   const comparePassword = await bcrypt.compare(password, user.password);
